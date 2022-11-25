@@ -66,7 +66,7 @@ export class PostsService {
   }
 
   async findAll(postsPage, perPage): Promise<Posts[]> {
-    let posts: Posts[] = await this.postsRepository.find({
+    const posts: Posts[] = await this.postsRepository.find({
       order: { id: 'ASC' },
       skip: perPage * postsPage - perPage,
       take: perPage,
@@ -83,8 +83,13 @@ export class PostsService {
     return posts;
   }
 
+  async getPostsAmount(): Promise<object> {
+    const postsTotalCount: number = await this.postsRepository.count();
+    return { postsTotalCount };
+  }
+
   async findByUserId(userId): Promise<User> {
-    let me: User = await this.usersRepository.findOne({
+    const me: User = await this.usersRepository.findOne({
       select: {
         id: true,
         posts: {
@@ -117,12 +122,12 @@ export class PostsService {
 
   async addPost(userId, text) {
     const insertParams = { userId, text };
-    let addingResult = await this.postsRepository.insert(insertParams);
+    const addingResult = await this.postsRepository.insert(insertParams);
     return addingResult;
   }
 
   async updatePost(userId, postId, postText) {
-    let updateResult = await this.postsRepository.update(
+    const updateResult = await this.postsRepository.update(
       {
         id: postId,
         userId: userId,
@@ -141,7 +146,13 @@ export class PostsService {
   }
 
   async deletePost(authUserId, postId) {
-    let deleteResult = await this.postsRepository.delete({
+    // first clear likes
+    await this.postLikesRepository.delete({
+      posts: { id: postId },
+    });
+
+    // then delete post
+    const deleteResult = await this.postsRepository.delete({
       id: postId,
       userId: authUserId,
     });

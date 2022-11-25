@@ -14,6 +14,7 @@ import { FollowModule } from './modules/follow/follow.module';
 import { PostsModule } from './modules/posts/posts.module';
 import { Posts } from './modules/posts/model/posts.entity';
 import { PostLikes } from './modules/posts/model/post-likes.entity';
+import { ChatModule } from './modules/chat/chat.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { PostLikes } from './modules/posts/model/post-likes.entity';
     PostsModule,
     ProfileModule,
     RegistrationModule,
+    ChatModule,
     // AuthModule,
   ],
   controllers: [AppController],

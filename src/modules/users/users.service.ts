@@ -55,20 +55,20 @@ export class UsersService {
   }
 
   async findAll({ count, page, friend }, userId = 1) {
-    let usersCount = count ?? 5;
-    let usersPage = page ?? 1;
+    const usersCount = count ?? 5;
+    const usersPage = page ?? 1;
 
-    let usersTotalCount: number = await this.usersRepository.count();
-    let myFollowingId = await this.getMyFollowingIds(userId);
+    const usersTotalCount: number = await this.usersRepository.count();
+    const myFollowingId = await this.getMyFollowingIds(userId);
 
-    let users: User[] = await this.usersRepository.find({
+    const users: User[] = await this.usersRepository.find({
       select: ['id', 'name', 'email', 'age', 'status', 'avatarImg'],
       order: { id: 'ASC' },
       skip: usersCount * usersPage - usersCount,
       take: usersCount,
     });
 
-    let usersWithFollowColumn = users.map((user) => {
+    const usersWithFollowColumn = users.map((user) => {
       user.isFollow = myFollowingId.some((followId) => followId === user.id);
       return user;
     });
@@ -83,7 +83,7 @@ export class UsersService {
   }
 
   async getMyFollowingIds(userId) {
-    let me: User = await this.usersRepository.findOne({
+    const me: User = await this.usersRepository.findOne({
       select: ['id'],
       where: { id: userId },
       relations: { follow: true },
