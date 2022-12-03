@@ -52,11 +52,10 @@ export class PostsController {
   @UseGuards(JwtAuthGuard)
   @Post('posts')
   @Bind(Request(), Body())
-  async addPost(req, body): Promise<boolean> {
+  async addPost(req, body): Promise<any> {
     const userId = req.user.userId;
     const text = body.text;
-    const insertResult = await this.postsService.addPost(userId, text);
-    const result = insertResult.raw.affectedRows > 0 ? true : false;
+    const result = await this.postsService.addPost(userId, text);
     return result;
   }
 

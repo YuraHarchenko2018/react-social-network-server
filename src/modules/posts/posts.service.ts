@@ -17,7 +17,7 @@ export class PostsService {
   ) {}
 
   async setPostLike(userId, postId) {
-    if (!userId && !postId) {
+    if (!userId || !postId) {
       return {
         status: false,
         message: 'user or post id has incorrect value',
@@ -38,15 +38,30 @@ export class PostsService {
           user: userId,
           posts: postId,
         });
+
         const isLikeWasSet = insertResult.raw.affectedRows > 0 ? true : false;
-        return {
-          status: isLikeWasSet,
-          message: isLikeWasSet ? 'Succes' : 'error',
-        };
+
+        if (isLikeWasSet) {
+          const likeObjWithId = insertResult.identifiers[0];
+          const likeData = {
+            ...likeObjWithId,
+            user: {
+              id: userId,
+            },
+          };
+
+          return {
+            status: isLikeWasSet,
+            message: isLikeWasSet ? 'Succes' : 'error',
+            likeData: likeData,
+          };
+        } else {
+          throw new Error('isLikeWasSet error');
+        }
       } catch (error) {
         return {
           status: false,
-          message: 'Post is not exist',
+          message: 'Post is not exist.',
         };
       }
     } else {
@@ -67,7 +82,7 @@ export class PostsService {
 
   async findAll(postsPage, perPage): Promise<Posts[]> {
     const posts: Posts[] = await this.postsRepository.find({
-      order: { id: 'ASC' },
+      order: { id: 'DESC' },
       skip: perPage * postsPage - perPage,
       take: perPage,
       relations: {
@@ -81,6 +96,23 @@ export class PostsService {
     posts.map((post) => (post['likesCount'] = post.likes.length));
 
     return posts;
+  }
+
+  async findOne(postId): Promise<Posts> {
+    const post: Posts = await this.postsRepository.findOne({
+      where: {
+        id: postId,
+      },
+      relations: {
+        user: true,
+        likes: {
+          user: true,
+        },
+      },
+    });
+
+    post['likesCount'] = post.likes.length;
+    return post;
   }
 
   async getPostsAmount(): Promise<object> {
@@ -122,8 +154,19 @@ export class PostsService {
 
   async addPost(userId, text) {
     const insertParams = { userId, text };
-    const addingResult = await this.postsRepository.insert(insertParams);
-    return addingResult;
+    const insertResult = await this.postsRepository.insert(insertParams);
+    const isSuccess = insertResult.raw.affectedRows > 0 ? true : false;
+    const insertedPostId = insertResult.raw.insertId;
+    if (isSuccess) {
+      const post = await this.findOne(insertedPostId);
+      return {
+        post: post,
+        status: true,
+      };
+    }
+    return {
+      status: false,
+    };
   }
 
   async updatePost(userId, postId, postText) {

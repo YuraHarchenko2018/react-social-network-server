@@ -8,7 +8,8 @@ export interface IAuthService {
   usersService: UsersService;
   jwtService: JwtService;
 
-  constructor(usersService: UsersService, jwtService: JwtService): void;
+  // constructor(usersService: UsersService, jwtService: JwtService): void;
   validateUser(email: string, pass: string): Promise<any>;
   login(user): Promise<any>;
+  chechJwtToken(token): any;
 }

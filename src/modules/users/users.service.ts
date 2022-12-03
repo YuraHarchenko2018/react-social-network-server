@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { InsertResult, Repository } from 'typeorm';
+import { In, InsertResult, ILike, Repository } from 'typeorm';
 import { User } from './model/user.entity';
 import * as bcrypt from 'bcrypt';
 import { is_email_valid } from 'node-email-validation';
@@ -54,7 +54,76 @@ export class UsersService {
     return this.usersRepository.insert(addUserDto);
   }
 
-  async findAll({ count, page, friend }, userId = 1) {
+  async findFriends({ page, count }, userId): Promise<any> {
+    const currentPage = page ?? 1;
+    const perPage = count ?? 5;
+
+    const myFollowingId = await this.getMyFollowingIds(userId);
+    const usersTotalCount: number = await this.usersRepository.count({
+      where: {
+        id: In(myFollowingId),
+      },
+    });
+
+    const users: User[] = await this.usersRepository.find({
+      select: ['id', 'name', 'email', 'age', 'status', 'avatarImg'],
+      order: { id: 'ASC' },
+      skip: perPage * currentPage - perPage,
+      take: perPage,
+      where: {
+        id: In(myFollowingId),
+      },
+    });
+
+    return {
+      users: users,
+      totalCount: usersTotalCount,
+    };
+  }
+
+  async searchUsers(searchParam, userId) {
+    const myFollowingId = await this.getMyFollowingIds(userId);
+
+    const users: User[] = await this.usersRepository.find({
+      select: ['id', 'name', 'email', 'age', 'status', 'avatarImg'],
+      order: { id: 'ASC' },
+      where: {
+        name: ILike(`%${searchParam}%`),
+      },
+    });
+
+    const usersWithFollowColumn = users.map((user) => {
+      user.isFollow = myFollowingId.some((followId) => followId === user.id);
+      return user;
+    });
+
+    return [
+      {
+        users: usersWithFollowColumn,
+      },
+    ];
+  }
+
+  async searchFriends(searchParam, userId) {
+    const myFollowingId = await this.getMyFollowingIds(userId);
+
+    const users: User[] = await this.usersRepository.find({
+      select: ['id', 'name', 'email', 'age', 'status', 'avatarImg'],
+      order: { id: 'ASC' },
+      where: {
+        id: In(myFollowingId),
+        name: ILike(`%${searchParam}%`),
+      },
+    });
+
+    return [
+      {
+        users: users,
+      },
+    ];
+  }
+
+  async findAll({ count, page }, userId = 1) {
     const usersCount = count ?? 5;
     const usersPage = page ?? 1;
 

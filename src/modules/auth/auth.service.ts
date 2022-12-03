@@ -50,4 +50,19 @@ export class AuthService {
       metadata: payload,
     };
   }
+
+  chechJwtToken(token) {
+    try {
+      const verifyResult = this.jwtService.verify(token);
+      return {
+        status: true,
+        data: verifyResult,
+      };
+    } catch (error) {
+      return {
+        status: false,
+        error: error,
+      };
+    }
+  }
 }
