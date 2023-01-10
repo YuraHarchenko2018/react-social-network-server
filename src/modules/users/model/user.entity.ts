@@ -1,20 +1,18 @@
+import { Chat } from './../../chat/model/chat.entity';
 import { PostLikes } from '../../posts/model/post-likes.entity';
 import { Posts } from 'src/modules/posts/model/posts.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  JoinColumn,
-  ManyToOne,
   OneToMany,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { Follow } from '../../follow/model/follow.entity';
 
 @Entity()
 export class User {
-  map(arg0: (user: any) => any): User {
-    throw new Error('Method not implemented.');
-  }
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -45,11 +43,14 @@ export class User {
   @OneToMany(() => PostLikes, (likes) => likes.user)
   likes: PostLikes[];
 
+  @ManyToMany(() => Chat)
+  @JoinTable()
+  chat: Chat[];
+
   @Column({
     type: 'varchar',
     length: 1000,
-    default:
-      'https://cdn4.iconfinder.com/data/icons/small-n-flat/24/user-512.png',
+    default: '/default-avatar',
   })
   avatarImg: string;
 }

@@ -5,7 +5,12 @@ import {
   Query,
   UseGuards,
   Request,
+  Post,
+  UseInterceptors,
+  UploadedFile,
+  Body,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/passport/guards/jwt-auth.guard';
 import { User } from './model/user.entity';
 import { UsersService } from './users.service';
@@ -42,5 +47,24 @@ export class UsersController {
   async searchFriends(req, query): Promise<Array<object>> {
     const searchParam = query.search;
     return await this.usersService.searchFriends(searchParam, req.user.userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('/updateInfo')
+  @UseInterceptors(FileInterceptor('avatar'))
+  async uploadFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Request() req,
+    @Body() body,
+  ) {
+    // create thunk on frontend
+    const userName = body.userName ?? null;
+    const userAge = body.userAge ?? null;
+    return await this.usersService.updateUserInfo(
+      req.user.userId,
+      file,
+      userName,
+      userAge,
+    );
   }
 }

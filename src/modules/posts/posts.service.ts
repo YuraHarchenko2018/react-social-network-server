@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ConnectableObservable } from 'rxjs';
 import { Repository } from 'typeorm';
 import { User } from '../users/model/user.entity';
 import { PostLikes } from './model/post-likes.entity';

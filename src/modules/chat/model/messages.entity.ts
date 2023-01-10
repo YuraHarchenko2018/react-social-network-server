@@ -1,31 +1,26 @@
-import { User } from 'src/modules/users/model/user.entity';
-import { PostLikes } from './post-likes.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
-  OneToMany,
+  ManyToOne,
 } from 'typeorm';
+import { Chat } from './chat.entity';
 
 @Entity()
-export class Posts {
+export class Messages {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  userId: number;
+  senderId: number;
 
-  @Column({ type: 'varchar', length: 2000 })
+  @ManyToOne(() => Chat, (chat) => chat.messages)
+  chat: Chat;
+
+  @Column({ type: 'varchar', length: 4000 })
   text: string;
-
-  @ManyToOne(() => User, (user) => user.posts)
-  user: User;
-
-  @OneToMany(() => PostLikes, (likes) => likes.posts)
-  likes: PostLikes[];
 
   @CreateDateColumn({
     type: 'timestamp',

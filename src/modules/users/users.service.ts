@@ -5,6 +5,7 @@ import { User } from './model/user.entity';
 import * as bcrypt from 'bcrypt';
 import { is_email_valid } from 'node-email-validation';
 import { AddUserDto } from './dto/add-user.dto';
+import { writeFileSync } from 'fs';
 
 @Injectable()
 export class UsersService {
@@ -175,5 +176,52 @@ export class UsersService {
         email: email,
       },
     });
+  }
+
+  async updateUserInfo(userId, newAvatar, userNameToUpdate, userAgeToUpdate) {
+    type ToUpdateObjType = {
+      avatarImg?: string;
+      name?: string;
+      age?: number;
+    };
+
+    const toUpdate: ToUpdateObjType = {};
+
+    if (newAvatar) {
+      const fileName = this.makeid(6) + '_' + newAvatar.originalname;
+      const filePath = 'src/assets/avatars/' + fileName;
+
+      writeFileSync(filePath, newAvatar.buffer);
+      toUpdate.avatarImg = '/assets/' + fileName;
+    }
+
+    if (userNameToUpdate) {
+      toUpdate.name = userNameToUpdate;
+    }
+
+    if (userAgeToUpdate) {
+      toUpdate.age = +userAgeToUpdate;
+    }
+
+    const updateResult = await this.usersRepository.update(
+      {
+        id: userId,
+      },
+      toUpdate,
+    );
+
+    const result = updateResult.affected > 0 ? true : false;
+    return result;
+  }
+
+  private makeid(length) {
+    let result = '';
+    const characters =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
   }
 }

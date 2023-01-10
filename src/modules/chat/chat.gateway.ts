@@ -2,54 +2,51 @@ import { Inject } from '@nestjs/common';
 import {
   WebSocketServer,
   SubscribeMessage,
-  MessageBody,
   WebSocketGateway,
-  ConnectedSocket,
-  OnGatewayConnection
 } from '@nestjs/websockets';
+import { Socket, Server } from 'socket.io';
 import { AuthService } from '../auth/auth.service';
 import { IAuthService } from '../auth/interfaces/auth.service.interface';
+import { ChatService } from './chat.service';
 
 @WebSocketGateway({ cors: true })
 export class ChatGateway {
-  constructor(@Inject(AuthService) private authService: IAuthService) {}
+  constructor(
+    @Inject(AuthService) private authService: IAuthService,
+    private readonly chatService: ChatService,
+  ) {}
 
   @WebSocketServer()
-  server;
+  server: Server;
 
-  handleConnection(connected) {
-    const jwtToken = connected.handshake.auth.jwtToken;
+  async handleConnection(client: Socket) {
+    const jwtToken = client.handshake.auth.jwtToken;
     const result = this.authService.chechJwtToken(jwtToken);
 
-    console.log(result);
-
-    this.server.emit('message', {
-      senderId: 30,
-      senderName: 'Yuri',
-      text: 'Connected)',
-    });
+    if (result.status) {
+      const userId = result.data.sub;
+      const chats = await this.chatService.getUserChats(userId);
+      chats.forEach((chat) => {
+        client.join(`CHAT|${chat.id}`);
+      });
+    }
   }
 
   @SubscribeMessage('message')
-  handleMessage(
-    @MessageBody() messageBody,
-    @ConnectedSocket() connected,
-  ): void {
-    console.log(messageBody);
-    console.log('id - ' + connected.id);
-
-    const jwtToken = connected.handshake.auth.jwtToken;
+  async handleMessage(client: Socket, data: any) {
+    const jwtToken = client.handshake.auth.jwtToken;
     const result = this.authService.chechJwtToken(jwtToken);
 
     if (result.status) {
       const senderUserId = result.data.sub;
-      const senderUsername = result.data.name;
 
-      this.server.emit('message', {
-        senderId: senderUserId,
-        senderName: senderUsername,
-        text: messageBody.text,
-      });
+      const message = await this.chatService.addMessage(
+        senderUserId,
+        data.text,
+        data.chatId,
+      );
+
+      this.server.in(`CHAT|${data.chatId}`).emit('message', message);
     }
   }
 }
