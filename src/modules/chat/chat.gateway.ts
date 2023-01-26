@@ -21,7 +21,7 @@ export class ChatGateway {
 
   async handleConnection(client: Socket) {
     const jwtToken = client.handshake.auth.jwtToken;
-    const result = this.authService.chechJwtToken(jwtToken);
+    const result = this.authService.checkJwtToken(jwtToken);
 
     if (result.status) {
       const userId = result.data.sub;
@@ -35,7 +35,7 @@ export class ChatGateway {
   @SubscribeMessage('message')
   async handleMessage(client: Socket, data: any) {
     const jwtToken = client.handshake.auth.jwtToken;
-    const result = this.authService.chechJwtToken(jwtToken);
+    const result = this.authService.checkJwtToken(jwtToken);
 
     if (result.status) {
       const senderUserId = result.data.sub;

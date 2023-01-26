@@ -148,7 +148,7 @@ export class PostsService {
       },
     });
 
-    me.posts.map((post) => (post['likesCount'] = post.likes.length));
+    me?.posts.map((post) => (post['likesCount'] = post.likes.length));
 
     return me;
   }

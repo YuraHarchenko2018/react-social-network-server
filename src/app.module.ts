@@ -15,6 +15,8 @@ import { PostsModule } from './modules/posts/posts.module';
 import { Posts } from './modules/posts/model/posts.entity';
 import { PostLikes } from './modules/posts/model/post-likes.entity';
 import { ChatModule } from './modules/chat/chat.module';
+import { Messages } from './modules/chat/model/messages.entity';
+import { Chat } from './modules/chat/model/chat.entity';
 
 @Module({
   imports: [
@@ -25,10 +27,10 @@ import { ChatModule } from './modules/chat/chat.module';
       username: process.env.MYSQL_USER ?? 'root',
       password: process.env.MYSQL_PASSWORD ?? '12345678',
       database: process.env.MYSQL_DATABASE ?? 'it-kamasutra',
-      entities: [User, Follow, Posts, PostLikes],
+      entities: [User, Follow, Posts, PostLikes, Messages, Chat],
       charset: 'utf8mb4_unicode_ci',
       // migrationsTableName: "migrations",
-      synchronize: true,
+      synchronize: false,
     }),
     UsersModule,
     FollowModule,

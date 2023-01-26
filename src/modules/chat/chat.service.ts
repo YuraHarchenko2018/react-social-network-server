@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOperator, In, Not, Repository } from 'typeorm';
+import { In, Not, Repository } from 'typeorm';
 import { User } from '../users/model/user.entity';
 import { Chat } from './model/chat.entity';
 import { Messages } from './model/messages.entity';
@@ -16,7 +16,7 @@ export class ChatService {
     private chatRepository: Repository<Chat>,
   ) {}
 
-  async findFriends({ page, count }, userId): Promise<any> {
+  async findFriends({ page, count }, userId: number): Promise<any> {
     const currentPage = page ?? 1;
     const perPage = count ?? 5;
 
@@ -43,7 +43,7 @@ export class ChatService {
     };
   }
 
-  async getMyFollowingIds(userId) {
+  async getMyFollowingIds(userId: number) {
     const me: User = await this.usersRepository.findOne({
       select: ['id'],
       where: { id: userId },
@@ -59,7 +59,7 @@ export class ChatService {
     return newChatId;
   }
 
-  async addUserToChat(chatId, userId): Promise<boolean> {
+  async addUserToChat(chatId: number, userId: number): Promise<boolean> {
     const findChatOption = {
       where: {
         id: chatId,
@@ -89,7 +89,7 @@ export class ChatService {
     return false;
   }
 
-  async getUserChats(userId) {
+  async getUserChats(userId: number) {
     const user = await this.usersRepository.findOne({
       where: {
         id: userId,
@@ -101,7 +101,7 @@ export class ChatService {
     return user.chat;
   }
 
-  async addMessage(senderId, text, chatId) {
+  async addMessage(senderId: number, text: string, chatId: number) {
     const chat = await this.chatRepository.findOne({
       where: {
         id: chatId,
@@ -128,16 +128,25 @@ export class ChatService {
     return message;
   }
 
-  async getChatMessages(chatId) {
-    const chat = await this.chatRepository.findOne({
+  async isUserInChat(userId: number, chatId: number) {
+    const chats: Chat[] = await this.getUserChats(userId);
+    const userChatIds = chats.map((chat) => chat.id);
+    const result = userChatIds.some((userChatId) => userChatId === chatId);
+    return result;
+  }
+
+  async getChatMessages(currentPage: number, perPage: number, chatId: number) {
+    const chat = await this.chatRepository.findOne({ where: { id: chatId } });
+    const chatMessages = await this.messagesRepository.find({
       where: {
-        id: chatId,
+        chat: chat,
       },
-      relations: {
-        messages: true,
-      },
+      skip: perPage * currentPage - perPage,
+      take: perPage,
+      order: { id: 'DESC' },
     });
-    return chat.messages;
+
+    return chatMessages;
   }
 
   async getChatsUsers(chats: Chat[], asksUserId: number) {
@@ -164,7 +173,7 @@ export class ChatService {
     return chatsUsers;
   }
 
-  async getChatPenPal(chatId, asksUserId) {
+  async getChatPenPal(chatId: number, asksUserId: number) {
     const chatUsers = await this.usersRepository.find({
       where: {
         id: Not(asksUserId),

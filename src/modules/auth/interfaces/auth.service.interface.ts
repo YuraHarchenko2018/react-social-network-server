@@ -11,5 +11,5 @@ export interface IAuthService {
   // constructor(usersService: UsersService, jwtService: JwtService): void;
   validateUser(email: string, pass: string): Promise<any>;
   login(user): Promise<any>;
-  chechJwtToken(token): any;
+  checkJwtToken(token): any;
 }

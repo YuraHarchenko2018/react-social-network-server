@@ -6,6 +6,7 @@ import * as bcrypt from 'bcrypt';
 import { is_email_valid } from 'node-email-validation';
 import { AddUserDto } from './dto/add-user.dto';
 import { writeFileSync } from 'fs';
+import { randomUUID } from 'node:crypto';
 
 @Injectable()
 export class UsersService {
@@ -30,7 +31,7 @@ export class UsersService {
     return true;
   }
 
-  async singupValidationEmail(email: string): Promise<boolean> {
+  async signupValidationEmail(email: string): Promise<boolean> {
     // check on valid email
     const isEmailValid: boolean = is_email_valid(email);
     if (!isEmailValid) {
@@ -186,9 +187,10 @@ export class UsersService {
     };
 
     const toUpdate: ToUpdateObjType = {};
+    const salt = randomUUID();
 
     if (newAvatar) {
-      const fileName = this.makeid(6) + '_' + newAvatar.originalname;
+      const fileName = salt + '_' + newAvatar.originalname;
       const filePath = 'src/assets/avatars/' + fileName;
 
       writeFileSync(filePath, newAvatar.buffer);
@@ -211,17 +213,6 @@ export class UsersService {
     );
 
     const result = updateResult.affected > 0 ? true : false;
-    return result;
-  }
-
-  private makeid(length) {
-    let result = '';
-    const characters =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const charactersLength = characters.length;
-    for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
     return result;
   }
 }

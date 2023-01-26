@@ -23,7 +23,7 @@ export default class RegistrationService {
     const password: string = addUserDto.password;
 
     // valid email
-    const isEmailValid: boolean = await this.usersService.singupValidationEmail(
+    const isEmailValid: boolean = await this.usersService.signupValidationEmail(
       email,
     );
     if (!isEmailValid) {

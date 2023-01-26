@@ -51,7 +51,7 @@ export class AuthService {
     };
   }
 
-  chechJwtToken(token) {
+  checkJwtToken(token) {
     try {
       const verifyResult = this.jwtService.verify(token);
       return {

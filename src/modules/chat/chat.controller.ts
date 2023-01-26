@@ -7,6 +7,7 @@ import {
   Request,
   Get,
   Param,
+  Query,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/passport/guards/jwt-auth.guard';
 import { ChatService } from './chat.service';
@@ -57,12 +58,25 @@ export class ChatController {
 
   @UseGuards(JwtAuthGuard)
   @Get('messages/:chatId')
-  @Bind(Request(), Param())
-  async getMessages(req, param) {
+  @Bind(Request(), Param(), Query())
+  async getMessages(req, param, query) {
+    const currentPage = query.page ?? 1;
+    const perPage = query.perPage ?? 30;
+
     const userId = req.user.userId;
     const chatId = +param.chatId;
-    // get messages - ??? add check is user in this chat ???
-    const messages = await this.chatService.getChatMessages(chatId);
-    return messages;
+
+    const isUserInChat = await this.chatService.isUserInChat(userId, chatId);
+
+    if (isUserInChat) {
+      const messages = await this.chatService.getChatMessages(
+        currentPage,
+        perPage,
+        chatId,
+      );
+      return messages;
+    }
+
+    return [];
   }
 }
